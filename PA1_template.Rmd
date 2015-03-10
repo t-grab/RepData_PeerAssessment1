@@ -138,6 +138,16 @@ sum(result)
 The result is `r sum(result)`. When every interval has exactly 8 missing values
 and there are just `r sum(result)` days that contain missing values at all, there
 have to be exactly `r sum(result)` days that have missing values for every interval.
+The following calculation shows this even better. Every day is devided into 5-minute
+intervals, so there should be eight days that have 288 NA values for steps:
+
+```{r}
+tapply(data$steps, data$date, function(dat) {sum(is.na(dat))})
+```
+
+As the table shows that is true. There are eight days that do not have any values
+at all.
+
 Thus, the first strategy does not seem to be promising and I decided to use the
 second one using the mean to impute the values.
 

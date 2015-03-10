@@ -158,6 +158,42 @@ sum(result)
 The result is 8. When every interval has exactly 8 missing values
 and there are just 8 days that contain missing values at all, there
 have to be exactly 8 days that have missing values for every interval.
+The following calculation shows this even better. Every day is devided into 5-minute
+intervals, so there should be eight days that have 288 NA values for steps:
+
+
+```r
+tapply(data$steps, data$date, function(dat) {sum(is.na(dat))})
+```
+
+```
+## 2012-10-01 2012-10-02 2012-10-03 2012-10-04 2012-10-05 2012-10-06 
+##        288          0          0          0          0          0 
+## 2012-10-07 2012-10-08 2012-10-09 2012-10-10 2012-10-11 2012-10-12 
+##          0        288          0          0          0          0 
+## 2012-10-13 2012-10-14 2012-10-15 2012-10-16 2012-10-17 2012-10-18 
+##          0          0          0          0          0          0 
+## 2012-10-19 2012-10-20 2012-10-21 2012-10-22 2012-10-23 2012-10-24 
+##          0          0          0          0          0          0 
+## 2012-10-25 2012-10-26 2012-10-27 2012-10-28 2012-10-29 2012-10-30 
+##          0          0          0          0          0          0 
+## 2012-10-31 2012-11-01 2012-11-02 2012-11-03 2012-11-04 2012-11-05 
+##          0        288          0          0        288          0 
+## 2012-11-06 2012-11-07 2012-11-08 2012-11-09 2012-11-10 2012-11-11 
+##          0          0          0        288        288          0 
+## 2012-11-12 2012-11-13 2012-11-14 2012-11-15 2012-11-16 2012-11-17 
+##          0          0        288          0          0          0 
+## 2012-11-18 2012-11-19 2012-11-20 2012-11-21 2012-11-22 2012-11-23 
+##          0          0          0          0          0          0 
+## 2012-11-24 2012-11-25 2012-11-26 2012-11-27 2012-11-28 2012-11-29 
+##          0          0          0          0          0          0 
+## 2012-11-30 
+##        288
+```
+
+As the table shows that is true. There are eight days that do not have any values
+at all.
+
 Thus, the first strategy does not seem to be promising and I decided to use the
 second one using the mean to impute the values.
 
@@ -193,7 +229,7 @@ imputed.plot <- ggplot(imputed.stepsPerDay, aes(x=steps)) +
 imputed.plot
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
 
 Median and mean are computed as before.
 
@@ -228,7 +264,7 @@ ggplot(comparison.stepsPerDay, aes(x=steps)) +
          y='Frequency')
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
 
 As one can see imputing the missing values has not affected most parts of the distribution
 at all, however, the center of the distribution, the peek, has doubled. This is due to
@@ -262,4 +298,4 @@ ggplot(imputed.stepsPerInterval, aes(interval, steps)) +
          y="Number of steps")
 ```
 
-![](./PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
+![](./PA1_template_files/figure-html/unnamed-chunk-15-1.png) 
