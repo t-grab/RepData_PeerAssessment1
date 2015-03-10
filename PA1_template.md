@@ -1,18 +1,6 @@
----
-title: 'Reproducible Research: Peer Assessment 1'
-output:
-  html_document:
-    keep_md: yes
-  pdf_document: default
----
+# Reproducible Research: Peer Assessment 1
 
-```{r, echo=FALSE, results='hide'}
-library(knitr)
-library(ggplot2)
-opts_chunk$set(echo=TRUE, results='hold', cache=FALSE)
-opts_chunk$set(digits=7)
-Sys.setlocale("LC_TIME", "English")
-```
+
 
 In the following report I...
 
@@ -22,7 +10,8 @@ I expect the data to be present on the computer in a zip file as described in...
 
 The process of loading and preprocessing the data is...
 
-```{r}
+
+```r
 unzip('activity.zip')
 data <- read.csv('activity.csv')
 data$date <- as.Date(data$date)
@@ -32,7 +21,8 @@ data$date <- as.Date(data$date)
 
 To answer this question, I first aggregate...
 
-```{r}
+
+```r
 stepsPerDay <- aggregate(steps ~ date, data, sum, na.action = na.omit)
 stepsPerDayPlot <- ggplot(stepsPerDay, aes(x=steps)) +
     geom_histogram(binwidth=(max(stepsPerDay$steps)-min(stepsPerDay$steps)) / 25) +
@@ -42,22 +32,26 @@ stepsPerDayPlot <- ggplot(stepsPerDay, aes(x=steps)) +
 stepsPerDayPlot
 ```
 
+![](./PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+
 Based on the data which was created by aggregation in the last section, I calculated
 the mean and the median number of steps taken per day as follows:
 
-```{r}
+
+```r
 stepsMean <- mean(stepsPerDay$steps, na.rm=TRUE)
 stepsMedian <- median(stepsPerDay$steps, na.rm=TRUE)
 ```
 
-Due to these calculations the mean number of steps taken each day is around **`r sprintf('%.2f', stepsMean)`**, the
-median is at **`r stepsMedian`**.
+Due to these calculations the mean number of steps taken each day is around **10766.19**, the
+median is at **10765**.
 
 ## What is the average daily activity pattern?
 
 At first...
 
-```{r}
+
+```r
 stepsPerInterval <- aggregate(steps ~ interval, data, mean, na.action = na.omit)
 ggplot(stepsPerInterval, aes(x=interval, y=steps)) +
     geom_line(size=0.725) +
@@ -66,18 +60,26 @@ ggplot(stepsPerInterval, aes(x=interval, y=steps)) +
          y='Number of steps')
 ```
 
+![](./PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+
 A glance at the figure above suggests that the 5-minute interval with the maximum 
 number of steps, averaged across all days, is the peek between 750 and 1000.
 The following code based on the aggregated data from the last section computes that
 interval.
 
-```{r, results='markup'}
+
+```r
 stepsMax <- stepsPerInterval[which.max(stepsPerInterval$steps),]
 print(stepsMax)
 ```
 
-Therefore, it is the `r stepsMax$interval`^th^ interval which contains with about
-`r sprintf('%.2f',stepsMax$steps)` (on average) the maximum number of steps.
+```
+##     interval    steps
+## 104      835 206.1698
+```
+
+Therefore, it is the 835^th^ interval which contains with about
+206.17 (on average) the maximum number of steps.
 
 ## Imputing missing values
 
@@ -85,13 +87,20 @@ A lot of observations in the dataset are incomplete, which means that value for
 the steps is missing. I calculated the amount of those incomplete observations as
 follows:
 
-```{r}
+
+```r
 table(is.na(data$steps))
 ```
 
-Obviously, there are `r sum(is.na(data$steps))` observations, where there is no
-value present for steps, while `r sum(!is.na(data$steps))` do have one. Thus,
-`r sprintf('%.2f',(sum(is.na(data$steps)) / length(data$steps))*100)`% 
+```
+## 
+## FALSE  TRUE 
+## 15264  2304
+```
+
+Obviously, there are 2304 observations, where there is no
+value present for steps, while 15264 do have one. Thus,
+13.11% 
 of the observations do not contain any value for steps. 
 
 The amount is not too high, though it still may introduce some bias into some
@@ -109,9 +118,15 @@ the distribution of the missing values.
 Looking at the missing values, I made the following discovery: Every interval contains
 the exact same amount of missing values.
 
-```{r}
+
+```r
 NAs <- tapply(data$steps, data$interval, function(dat) {sum(is.na(dat))})
 summary(NAs)
+```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       8       8       8       8       8       8
 ```
 
 This suggests that there are 8 complete days where there are no values at all.
@@ -124,7 +139,8 @@ OR-operator on the whole list of vectors. The resulting logical vector identifie
 days where at least one interval contains a missing value.
 3. Summing up the days with missing values.
 
-```{r}
+
+```r
 isNA <- tapply(data$steps, data$interval, is.na)
 result <- rep(FALSE, length(isNA[[1]]))
 
@@ -135,13 +151,18 @@ for(i in seq_along(isNA)) {
 sum(result)
 ```
 
-The result is `r sum(result)`. When every interval has exactly 8 missing values
-and there are just `r sum(result)` days that contain missing values at all, there
-have to be exactly `r sum(result)` days that have missing values for every interval.
+```
+## [1] 8
+```
+
+The result is 8. When every interval has exactly 8 missing values
+and there are just 8 days that contain missing values at all, there
+have to be exactly 8 days that have missing values for every interval.
 Thus, the first strategy does not seem to be promising and I decided to use the
 second one using the mean to impute the values.
 
-```{r}
+
+```r
 means <- tapply(data$steps, data$interval, mean, na.rm=T, simplify=F)
 imputed.data <- data
 imputed.data$steps <- mapply(function(step, interval) {
@@ -161,7 +182,8 @@ Having the dataset with imputed values, it is of interest to reanswer the first
 question asked to compare the results and to figure out, whether the missing values
 led to any bias or not.
 
-```{r}
+
+```r
 imputed.stepsPerDay <- aggregate(steps ~ date, imputed.data, sum, na.action = na.omit)
 imputed.plot <- ggplot(imputed.stepsPerDay, aes(x=steps)) +
     geom_histogram(binwidth=(max(imputed.stepsPerDay$steps)-min(imputed.stepsPerDay$steps)) / 25) +
@@ -171,22 +193,26 @@ imputed.plot <- ggplot(imputed.stepsPerDay, aes(x=steps)) +
 imputed.plot
 ```
 
+![](./PA1_template_files/figure-html/unnamed-chunk-11-1.png) 
+
 Median and mean are computed as before.
 
-```{r}
+
+```r
 imputed.stepsMean <- mean(imputed.stepsPerDay$steps, na.rm=TRUE)
 imputed.stepsMedian <- median(imputed.stepsPerDay$steps, na.rm=TRUE)
 ```
 
-With the imputed values the mean is around **`r sprintf('%.2f',imputed.stepsMean)`**
-and the median is around **`r sprintf('%.2f',imputed.stepsMedian)`**.
+With the imputed values the mean is around **10766.19**
+and the median is around **10766.19**.
 
 ### Comparison
 
 To compare the both I first create a plot showing visualizing the imputed data
 as well as the original data.
 
-```{r}
+
+```r
 stepsPerDay <- cbind(stepsPerDay, rep(FALSE, length(stepsPerDay$steps)))
 imputed.stepsPerDay <- cbind(imputed.stepsPerDay, rep(TRUE, length(imputed.stepsPerDay$steps)))
 colnames(stepsPerDay)[3] <- "Imputed"
@@ -202,21 +228,24 @@ ggplot(comparison.stepsPerDay, aes(x=steps)) +
          y='Frequency')
 ```
 
+![](./PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
+
 As one can see imputing the missing values has not affected most parts of the distribution
 at all, however, the center of the distribution, the peek, has doubled. This is due to
 the fact that before imputing the missing values, there were exactly eight complete days
 that lacked values. By using the interval mean to impute the missing values, the overall
 number of steps for those days was naturally identical and very close to the mean and
 the median of the other days. Thus, imputing the missing values has not changed very much.
-The mean stayed with around `r sprintf('%.2f',imputed.stepsMean)` the same. The median rose
-slightly from `r stepsMedian` to `r sprintf('%.2f',imputed.stepsMedian)`, but not significantly.
+The mean stayed with around 10766.19 the same. The median rose
+slightly from 10765 to 10766.19, but not significantly.
 
 To sum up, on can say that this particular strategy for imputing missing values has
 no impact on the estimates of the total daily number of steps.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 imputed.data$day <- sapply(imputed.data$date, function(date) {
     if (weekdays(date) %in% c("Saturday", "Sunday"))
         "Weekend"
@@ -232,3 +261,5 @@ ggplot(imputed.stepsPerInterval, aes(interval, steps)) +
          x="Interval",
          y="Number of steps")
 ```
+
+![](./PA1_template_files/figure-html/unnamed-chunk-14-1.png) 
